@@ -8,7 +8,7 @@
 
 import UIKit
 
-class HomeViewController: UIViewController,UISearchControllerDelegate {
+class HomeViewController: UIViewController {
     
     var navigator: HomeNavigator?
     var presenter: HomePresenter
@@ -43,26 +43,28 @@ class HomeViewController: UIViewController,UISearchControllerDelegate {
         super.viewDidLoad()
         view.addSubview(homeView)
         homeView.pinToSuperviewEdges()
-       
         presenter.delegate = self
-        navigationItem.title = "Book Store"
+        navigationItem.title = "Book Archive"
     }
     
     fileprivate func setUpNavigation(){
-        
         navigationItem.rightBarButtonItem =
-            NavigationBarFactory.setupSystemBarButtonWithTitle(title: "Reload",
+            NavigationBarFactory.setupSystemBarButtonWithTitle(title: "Filter",
+                                                               target: self,
+                                                               action: #selector(filter))
+        navigationItem.leftBarButtonItem =
+            NavigationBarFactory.setupSystemBarButtonWithTitle(title: "Reset",
                                                                target: self,
                                                                action: #selector(reloadData))
         navigationItem.searchController = searchCoontroller
- //       navigationController?.navigationBar.setNeedsLayout()
-//        navigationController?.navigationBar.setNeedsDisplay()
-//        navigationController?.navigationBar.layoutIfNeeded()
-//        navigationController?.navigationBar.layoutSubviews()
     }
     
     @objc private func reloadData() {
-        presenter.reloadData()
+        presenter.reset()
+    }
+    
+    @objc private func filter() {
+        presenter.showAuthorFilterView()
     }
     
     lazy var searchBar: UISearchBar = {
@@ -70,7 +72,7 @@ class HomeViewController: UIViewController,UISearchControllerDelegate {
         bar.translatesAutoresizingMaskIntoConstraints = false
         return bar
     }()
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         presenter.startPresenting()
@@ -83,12 +85,31 @@ class HomeViewController: UIViewController,UISearchControllerDelegate {
 }
 
 extension HomeViewController : PresenterDelegate {
+    func filteredAuthorName(rsultSet: Set<String>) {
+        let alert = UIAlertController(title: "Author", message: "Select An Author", preferredStyle: .alert)
+        
+        rsultSet.forEach { (title) in
+            alert.addAction(UIAlertAction(title: title, style: .default, handler: popupAction(sender:) ))
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: { (_) in
+            print("You've pressed cancel")
+        }))
+        
+       DispatchQueue.main.async {
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
+    
+    @objc func popupAction(sender:UIAlertAction){
+        print(sender.title ?? "nothing")
+        presenter.filterListUsingTitle(authorName: sender.title!)
+    }
+    
     func updateNavigationBar() {
         DispatchQueue.main.async {
               self.setUpNavigation()
         }
-      
     }
-
 }
 

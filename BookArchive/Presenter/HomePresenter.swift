@@ -12,12 +12,14 @@ import UIKit
 protocol HomeDisplayer {
     func endLoading()
     func update(with viewState: BookViewStates)
+    func reloadTableView(with viewState: BookViewStates)
     func attachListener(listener: HomeActionListener)
     func detachListener()
 }
 
 protocol PresenterDelegate {
     func updateNavigationBar()
+    func filteredAuthorName(rsultSet: Set<String>)
 }
 
 struct HomeActionListener {
@@ -40,10 +42,20 @@ class HomePresenter {
         self.displayer = displayer
     }
     
-    func reloadData() {
-        load()
+    // MARK: - Public Functions
+    
+    func showAuthorFilterView(){
+        useCase.getFilteredAuther { (result) in
+            self.delegate?.filteredAuthorName(rsultSet: result)
+        }
     }
-
+    
+    func reset(){
+        useCase.reset { (viewSate) in
+            self.reload(with: viewSate)
+        }
+    }
+    
     func startPresenting() {
         attachListeners()
     }
@@ -51,6 +63,13 @@ class HomePresenter {
     func stopPresenting() {
         displayer.detachListener()
     }
+    
+    func filterListUsingTitle(authorName: String) {
+        useCase.filter(authorName: authorName) { (viewSate) in
+            self.reload(with: viewSate)
+        }
+    }
+    // MARK: - Private Functions
     
     private func attachListeners() {
         displayer.attachListener(listener: newListener())
@@ -63,12 +82,15 @@ class HomePresenter {
         )
     }
     
+    private func reload(with viewState: BookViewStates) {
+        self.displayer.reloadTableView(with: viewState)
+    }
+    
     private func navigateToDetail(viewState: BookViewState) {
         self.navigator?.toBookDetail(viewState: viewState)
     }
     
-    func update(with viewState: BookViewStates) {
-       delegate?.updateNavigationBar()
+    private func update(with viewState: BookViewStates) {
         self.displayer.update(with: viewState)
     }
 
@@ -76,6 +98,7 @@ class HomePresenter {
         useCase.load { (result) in
             switch result {
             case .success(let viewState):
+                self.delegate?.updateNavigationBar()
                 self.update(with: viewState)
             case .failure(let error):
                 print(error)

@@ -28,8 +28,6 @@ class DetailView: UIView, DetailDisplayer {
     }
     private func setupView(){
         bookImageView.setCornerRadiousAndBorder()
-        authorLabel.setCornerRadiousAndBorder()
-        genreLabel.setCornerRadiousAndBorder()
         descriptionLabel.setCornerRadiousAndBorder()
     }
 }
