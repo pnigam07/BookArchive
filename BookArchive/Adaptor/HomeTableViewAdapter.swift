@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-protocol xyz {
+protocol TableViewAdaptorDelegate {
     func updateTableView()
 }
 
@@ -18,7 +18,7 @@ class HomeTableViewAdapter: NSObject {
     fileprivate (set) var viewState = BookViewStates.initialState()
     fileprivate var actionListener: HomeActionListener?
     fileprivate var filterredList = BookViewStates.initialState()
-    var delegate: xyz?
+    var delegate: TableViewAdaptorDelegate?
     
     func attachListener(listener: HomeActionListener) {
         actionListener = listener

@@ -14,7 +14,7 @@ class HomeView: UIView, HomeDisplayer {
      let adapter = HomeTableViewAdapter()
     
     var actionListner: HomeActionListener?
-    var loadMoreButton = UIButton.init(type: .system)
+    var creatBookLibraryButton = UIButton.init(type: .system)
     private let activityIndicator = UIActivityIndicatorView(style: .whiteLarge)
     
     override init(frame: CGRect) {
@@ -23,6 +23,7 @@ class HomeView: UIView, HomeDisplayer {
         super.init(frame: .zero)
         self.backgroundColor = .white
         activityIndicator.color = .gray
+        activityIndicator.hidesWhenStopped = true
         self.setup()
         adapter.delegate = self
     }
@@ -32,7 +33,6 @@ class HomeView: UIView, HomeDisplayer {
     }
     
     func endLoading() {
-//        activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
     
@@ -41,6 +41,13 @@ class HomeView: UIView, HomeDisplayer {
         DispatchQueue.main.async {
             self.endLoading()
              self.setupViewWithListOfBooks()
+        }
+    }
+    
+    func reloadTableView(with viewState: BookViewStates) {
+        adapter.update(with: viewState)
+        DispatchQueue.main.async {
+          self.tableView.reloadData()
         }
     }
     
@@ -81,6 +88,7 @@ class HomeView: UIView, HomeDisplayer {
     }
     
     private func setupViews() {
+        creatBookLibraryButton.removeFromSuperview()
         setupTableView()
     }
     
@@ -94,27 +102,26 @@ class HomeView: UIView, HomeDisplayer {
  
     private func setup(){
         self.addButton()
-        addSubview(activityIndicator)
-      //  activityIndicator.isHidden = true
+        addActivityIndicator()
     }
     
     private func addActivityIndicator(){
-       
-        activityIndicator.pinBottom(to: loadMoreButton)
+        addSubview(activityIndicator)
+        activityIndicator.pinTop(to: self, constant: 250, priority: .required)
         activityIndicator.pinCenterX(to: self)
-        activityIndicator.isHidden = false
+        activityIndicator.isHidden = true
     }
     
     private func addButton(){
-        loadMoreButton.setTitle("Load Books", for: .normal)
-        loadMoreButton.setTitleColor(Constants.appTintColor, for: .normal)
-        loadMoreButton.layer.cornerRadius = 5
-        loadMoreButton.layer.borderWidth = 2
-        loadMoreButton.layer.borderColor = UIColor.lightGray.cgColor
-        loadMoreButton.addTarget(self, action: #selector(loading), for: .touchUpInside)
-        self.addSubview(loadMoreButton)
-        loadMoreButton.pinCenter(to: self)
-        loadMoreButton.addSizeConstraint(size: CGSize.init(width: 150, height: 30))
+        creatBookLibraryButton.setTitle("Create Book Library", for: .normal)
+        creatBookLibraryButton.setTitleColor(Constants.appTintColor, for: .normal)
+        creatBookLibraryButton.layer.cornerRadius = 5
+        creatBookLibraryButton.layer.borderWidth = 0.5
+        creatBookLibraryButton.layer.borderColor = Constants.appTintColor.cgColor
+        creatBookLibraryButton.addTarget(self, action: #selector(loading), for: .touchUpInside)
+        self.addSubview(creatBookLibraryButton)
+        creatBookLibraryButton.pinCenter(to: self)
+        creatBookLibraryButton.addSizeConstraint(size: CGSize.init(width: 150, height: 30))
     }
     
     @objc private func loading(){
@@ -123,17 +130,14 @@ class HomeView: UIView, HomeDisplayer {
     }
     
     func endRefreshing() {
-      //  activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
         print("not loading")
     }
 }
 
-extension HomeView: xyz {
+extension HomeView: TableViewAdaptorDelegate {
     func updateTableView() {
         tableView.reloadData()
     }
-    
-    
 }
 
